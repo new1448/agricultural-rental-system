@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#14532d">
+<meta name="description" content="نظام إدارة الإيجارات الزراعية">
+<title>نظام الإيجارات الزراعية</title>
+
+<!-- Font Awesome -->
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      crossorigin="anonymous">
+
+<!-- Google Fonts - Cairo -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- التصميم -->
+<link rel="stylesheet" href="assets/css/style.css">
+
+<style>
+  body { font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     الشريط العلوي
+     ============================================================ -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <span class="brand-icon">🌾</span>
+    <span>نظام الإيجارات الزراعية</span>
+    <span class="connection-dot" title="متصل بقاعدة البيانات"></span>
+  </div>
+  <div class="navbar-actions">
+    <button class="nav-btn" onclick="openModal('priceModal')" title="سعر الفدان">
+      <i class="fa fa-coins"></i> <span>سعر الفدان</span>
+    </button>
+    <button class="nav-btn" onclick="openBackupModal()" title="النسخ الاحتياطي">
+      <i class="fa fa-cloud-arrow-up"></i> <span>احتياطي</span>
+    </button>
+    <button class="nav-btn" onclick="exportLocalJSON()" title="تصدير">
+      <i class="fa fa-file-export"></i> <span>تصدير</span>
+    </button>
+    <button class="nav-btn" onclick="document.getElementById('importFileInput').click()" title="استيراد">
+      <i class="fa fa-file-import"></i> <span>استيراد</span>
+    </button>
+    <input type="file" id="importFileInput" accept=".json" style="display:none">
+  </div>
+</nav>
+
+<!-- ============================================================
+     Hero - البحث
+     ============================================================ -->
+<section class="hero">
+  <h1 class="hero-title"><i class="fa fa-seedling"></i> إدارة الإيجارات الزراعية</h1>
+  <p class="hero-subtitle">ابحث عن مستأجر بالاسم أو الناحية أو الجريدة</p>
+
+  <div class="search-box">
+    <i class="fa fa-search" style="color:var(--slate-400);font-size:.95rem;flex-shrink:0"></i>
+    <input type="text" id="searchInput" placeholder="ابحث هنا..." autocomplete="off">
+    <button id="searchBtn"><i class="fa fa-search"></i> بحث</button>
+  </div>
+
+  <button class="hero-add-btn" onclick="openModal('addTenantModal')">
+    <i class="fa fa-plus-circle"></i> إضافة مستأجر جديد
+  </button>
+</section>
+
+<!-- ============================================================
+     منطقة النتائج
+     ============================================================ -->
+<section class="results-section">
+  <div class="results-header">
+    <span id="resultsCount"></span>
+  </div>
+  <div class="results-grid" id="resultsGrid"></div>
+
+  <!-- الحالة الفارغة -->
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon"><i class="fa fa-tractor"></i></div>
+    <h3>ابدأ بالبحث</h3>
+    <p>أدخل اسم المستأجر أو أي معلومة للعثور عليه</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     مودال: إضافة مستأجر
+     ============================================================ -->
+<div id="addTenantModal" class="modal-overlay">
+  <div class="modal-box modal-md">
+    <div class="modal-header">
+      <h3><i class="fa fa-user-plus" style="color:var(--green-700)"></i> إضافة مستأجر جديد</h3>
+      <button class="modal-close" onclick="closeModal('addTenantModal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="addTenantForm">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>الاسم <span class="required">*</span></label>
+            <input name="name" type="text" class="form-control" placeholder="اسم المستأجر الكامل" required>
+          </div>
+          <div class="form-group">
+            <label>رقم الجريدة</label>
+            <input name="journal" type="text" class="form-control" placeholder="مثال: ج/123">
+          </div>
+          <div class="form-group">
+            <label>الناحية</label>
+            <input name="district" type="text" class="form-control" placeholder="اسم الناحية">
+          </div>
+          <div class="form-group">
+            <label>الفدان</label>
+            <input name="feddan" type="number" class="form-control" placeholder="0" min="0" step="0.0001">
+          </div>
+          <div class="form-group">
+            <label>القيراط</label>
+            <input name="qirat" type="number" class="form-control" placeholder="0" min="0" max="23" step="0.0001">
+          </div>
+          <div class="form-group">
+            <label>السهم</label>
+            <input name="sahm" type="number" class="form-control" placeholder="0" min="0" max="575" step="0.0001">
+          </div>
+          <div class="form-group">
+            <label>واضع اليد</label>
+            <input name="hand_holder" type="text" class="form-control" placeholder="اسم واضع اليد">
+          </div>
+          <div class="form-group">
+            <label>رقم الهاتف</label>
+            <input name="phone" type="tel" class="form-control" placeholder="01xxxxxxxxx" dir="ltr">
+          </div>
+          <div class="form-group full">
+            <label>رابط الموقع</label>
+            <input name="location_url" type="url" class="form-control" placeholder="https://maps.google.com/..." dir="ltr">
+          </div>
+          <div class="form-group full">
+            <label>ملاحظات</label>
+            <textarea name="notes" class="form-control" placeholder="أي ملاحظات إضافية..."></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="submit" form="addTenantForm" class="btn btn-green btn-md">
+        <i class="fa fa-save"></i> حفظ المستأجر
+      </button>
+      <button class="btn btn-outline btn-md" onclick="closeModal('addTenantModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     مودال: تعديل مستأجر
+     ============================================================ -->
+<div id="editModal" class="modal-overlay">
+  <div class="modal-box modal-md">
+    <div class="modal-header">
+      <h3><i class="fa fa-edit" style="color:var(--slate-600)"></i> تعديل بيانات المستأجر</h3>
+      <button class="modal-close" onclick="closeModal('editModal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="editForm">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>الاسم <span class="required">*</span></label>
+            <input name="name" type="text" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>رقم الجريدة</label>
+            <input name="journal" type="text" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>الناحية</label>
+            <input name="district" type="text" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>الفدان</label>
+            <input name="feddan" type="number" class="form-control" min="0" step="0.0001">
+          </div>
+          <div class="form-group">
+            <label>القيراط</label>
+            <input name="qirat" type="number" class="form-control" min="0" max="23" step="0.0001">
+          </div>
+          <div class="form-group">
+            <label>السهم</label>
+            <input name="sahm" type="number" class="form-control" min="0" max="575" step="0.0001">
+          </div>
+          <div class="form-group">
+            <label>واضع اليد</label>
+            <input name="hand_holder" type="text" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>رقم الهاتف</label>
+            <input name="phone" type="tel" class="form-control" dir="ltr">
+          </div>
+          <div class="form-group full">
+            <label>رابط الموقع</label>
+            <input name="location_url" type="url" class="form-control" dir="ltr">
+          </div>
+          <div class="form-group full">
+            <label>ملاحظات</label>
+            <textarea name="notes" class="form-control"></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="submit" form="editForm" class="btn btn-slate btn-md">
+        <i class="fa fa-save"></i> حفظ التعديلات
+      </button>
+      <button class="btn btn-outline btn-md" onclick="closeModal('editModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     مودال: إضافة قطعة أرض
+     ============================================================ -->
+<div id="parcelModal" class="modal-overlay">
+  <div class="modal-box modal-sm">
+    <div class="modal-header">
+      <h3><i class="fa fa-vector-square" style="color:var(--teal-600)"></i> إضافة قطعة أرض</h3>
+      <button class="modal-close" onclick="closeModal('parcelModal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="tenant-label-tag">
+        <i class="fa fa-user"></i>
+        <span id="parcelTenantLabel">—</span>
+      </div>
+      <form id="parcelForm">
+        <input type="hidden" name="tenant_id"   id="parcelTenantId">
+        <input type="hidden" name="tenant_name" id="parcelTenantName">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>الناحية</label>
+            <input name="district" type="text" class="form-control" placeholder="اسم الناحية">
+          </div>
+          <div class="form-group">
+            <label>الحوض</label>
+            <input name="basin" type="text" class="form-control" placeholder="اسم الحوض">
+          </div>
+          <div class="form-group">
+            <label>الفدان</label>
+            <input name="feddan" type="number" class="form-control" placeholder="0" min="0" step="0.0001">
+          </div>
+          <div class="form-group">
+            <label>القيراط</label>
+            <input name="qirat" type="number" class="form-control" placeholder="0" min="0" step="0.0001">
+          </div>
+          <div class="form-group full">
+            <label>السهم</label>
+            <input name="sahm" type="number" class="form-control" placeholder="0" min="0" step="0.0001">
+          </div>
+          <div class="form-group full">
+            <label>الموقع / الوصف</label>
+            <input name="location" type="text" class="form-control" placeholder="وصف موقع القطعة">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="submit" form="parcelForm" class="btn btn-teal btn-md">
+        <i class="fa fa-plus"></i> إضافة القطعة
+      </button>
+      <button class="btn btn-outline btn-md" onclick="closeModal('parcelModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     مودال: تسجيل تعدي
+     ============================================================ -->
+<div id="infrModal" class="modal-overlay">
+  <div class="modal-box modal-md">
+    <div class="modal-header">
+      <h3><i class="fa fa-exclamation-triangle" style="color:var(--orange-600)"></i> تسجيل تعدي</h3>
+      <button class="modal-close" onclick="closeModal('infrModal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="tenant-label-tag" style="background:var(--orange-100);color:var(--orange-600)">
+        <i class="fa fa-user"></i>
+        <span id="infrTenantLabel">—</span>
+      </div>
+      <form id="infrForm">
+        <input type="hidden" name="tenant_id"   id="infrTenantId">
+        <input type="hidden" name="tenant_name" id="infrTenantName">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>نوع التعدي <span class="required">*</span></label>
+            <select name="infringement_type" class="form-control" required>
+              <option value="">-- اختر --</option>
+              <option>بناء غير مرخص</option>
+              <option>زراعة بدون إذن</option>
+              <option>تعدي على الحدود</option>
+              <option>رعي غير مرخص</option>
+              <option>حفر غير مرخص</option>
+              <option>أخرى</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>اسم المتعدي</label>
+            <input name="transgressor_name" type="text" class="form-control" placeholder="اسم المتعدي">
+          </div>
+          <div class="form-group full">
+            <label>المساحة المتعدى عليها (م²)</label>
+            <input name="area_sqm" type="number" class="form-control" placeholder="0" min="0" step="0.01">
+          </div>
+          <div class="form-group full">
+            <label>وصف التعدي</label>
+            <textarea name="description" class="form-control" placeholder="تفاصيل التعدي..." rows="3"></textarea>
+          </div>
+          <div class="form-group full">
+            <label>الإجراء المتخذ</label>
+            <textarea name="action_taken" class="form-control" placeholder="الإجراء الذي تم اتخاذه..." rows="2"></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="submit" form="infrForm" class="btn btn-orange btn-md">
+        <i class="fa fa-flag"></i> تسجيل التعدي
+      </button>
+      <button class="btn btn-outline btn-md" onclick="closeModal('infrModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     مودال: إضافة وثيقة
+     ============================================================ -->
+<div id="docModal" class="modal-overlay">
+  <div class="modal-box modal-md">
+    <div class="modal-header">
+      <h3><i class="fa fa-file-alt" style="color:var(--blue-600)"></i> إضافة وثيقة رسمية</h3>
+      <button class="modal-close" onclick="closeModal('docModal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="tenant-label-tag" style="background:var(--blue-100);color:var(--blue-600)">
+        <i class="fa fa-user"></i>
+        <span id="docTenantLabel">—</span>
+      </div>
+      <form id="docForm">
+        <input type="hidden" name="tenant_id"   id="docTenantId">
+        <input type="hidden" name="tenant_name" id="docTenantName">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>اسم الوثيقة <span class="required">*</span></label>
+            <input name="document_name" type="text" class="form-control" placeholder="اسم الوثيقة" required>
+          </div>
+          <div class="form-group">
+            <label>رقم الوثيقة</label>
+            <input name="document_number" type="text" class="form-control" placeholder="رقم مرجعي">
+          </div>
+          <div class="form-group">
+            <label>تاريخ الوثيقة</label>
+            <input name="document_date" type="date" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>نوع الوثيقة</label>
+            <select name="document_type" class="form-control">
+              <option value="">-- اختر --</option>
+              <option>عقد إيجار</option>
+              <option>قرار إداري</option>
+              <option>محضر</option>
+              <option>شكوى</option>
+              <option>خطاب</option>
+              <option>حكم قضائي</option>
+              <option>أخرى</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>الجهة المصدرة</label>
+            <input name="entity" type="text" class="form-control" placeholder="مثال: مديرية الزراعة">
+          </div>
+          <div class="form-group full">
+            <label>رابط الوثيقة</label>
+            <input name="document_link" type="url" class="form-control" placeholder="https://..." dir="ltr">
+          </div>
+          <div class="form-group full">
+            <label>ملاحظات</label>
+            <textarea name="notes" class="form-control" placeholder="ملاحظات إضافية..." rows="2"></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="submit" form="docForm" class="btn btn-blue btn-md">
+        <i class="fa fa-save"></i> حفظ الوثيقة
+      </button>
+      <button class="btn btn-outline btn-md" onclick="closeModal('docModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     مودال: الملف الشخصي المتكامل
+     ============================================================ -->
+<div id="profileModal" class="modal-overlay">
+  <div class="modal-box modal-xl">
+    <div class="modal-header">
+      <h3><i class="fa fa-id-card" style="color:var(--green-700)"></i> الملف الشخصي</h3>
+      <button class="modal-close" onclick="closeModal('profileModal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div id="profileBody">
+      <!-- يُملأ بـ JavaScript -->
+    </div>
+    <!-- أزرار التقرير (ثابتة أسفل المودال) -->
+    <div class="profile-report-actions">
+      <button class="btn btn-green btn-md" onclick="profilePrint()">
+        <i class="fa fa-print"></i> طباعة التقرير
+      </button>
+      <button class="btn btn-blue btn-md" onclick="profileEmail()">
+        <i class="fa fa-envelope"></i> إرسال بالبريد
+      </button>
+      <button class="btn btn-gold btn-md" onclick="profileWhatsApp()">
+        <i class="fa-brands fa-whatsapp"></i> مشاركة واتساب
+      </button>
+      <button class="btn btn-outline btn-md" onclick="closeModal('profileModal')" style="margin-right:auto">
+        <i class="fa fa-times"></i> إغلاق
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     مودال: سعر الفدان
+     ============================================================ -->
+<div id="priceModal" class="modal-overlay">
+  <div class="modal-box modal-sm">
+    <div class="modal-header">
+      <h3><i class="fa fa-coins" style="color:var(--gold-500)"></i> سعر الفدان</h3>
+      <button class="modal-close" onclick="closeModal('priceModal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="priceForm">
+        <div class="form-group">
+          <label>سعر الفدان الواحد (جنيه مصري)</label>
+          <input id="feddanPriceInput" type="number" class="form-control"
+                 placeholder="مثال: 5000" min="0" step="0.01" required
+                 style="font-size:1.2rem;font-weight:700;text-align:center">
+          <span class="form-hint">يُستخدم هذا السعر لحساب الإيجار المستحق لكل مستأجر</span>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="submit" form="priceForm" class="btn btn-gold btn-md">
+        <i class="fa fa-save"></i> حفظ السعر
+      </button>
+      <button class="btn btn-outline btn-md" onclick="closeModal('priceModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     مودال: النسخ الاحتياطي
+     ============================================================ -->
+<div id="backupModal" class="modal-overlay">
+  <div class="modal-box modal-md">
+    <div class="modal-header">
+      <h3><i class="fa fa-cloud-arrow-up" style="color:var(--green-700)"></i> النسخ الاحتياطي والاستعادة</h3>
+      <button class="modal-close" onclick="closeModal('backupModal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <!-- إنشاء نسخة -->
+      <div style="background:var(--green-50);border:1px solid var(--green-100);border-radius:var(--radius-sm);padding:1rem;margin-bottom:1.2rem">
+        <p style="font-size:.88rem;color:var(--green-800);margin-bottom:.7rem;font-weight:600">
+          <i class="fa fa-shield-halved"></i> إنشاء نسخة احتياطية جديدة
+        </p>
+        <p style="font-size:.82rem;color:var(--green-700);margin-bottom:.8rem">
+          سيتم تجميع جميع البيانات ورفعها إلى Supabase Storage وتحميل نسخة محلية.
+        </p>
+        <button id="createBackupBtn" class="btn btn-green btn-md">
+          <i class="fa fa-plus"></i> نسخة جديدة
+        </button>
+      </div>
+
+      <!-- الاستيراد بملف محلي -->
+      <div style="background:var(--blue-100);border:1px solid #bfdbfe;border-radius:var(--radius-sm);padding:1rem;margin-bottom:1.2rem">
+        <p style="font-size:.88rem;color:var(--blue-600);margin-bottom:.7rem;font-weight:600">
+          <i class="fa fa-file-import"></i> استعادة من ملف محلي
+        </p>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">
+          <select id="importModeSelect" class="form-control" style="width:auto">
+            <option value="merge">دمج (Merge)</option>
+            <option value="replace">استبدال كامل (Replace)</option>
+          </select>
+          <button class="btn btn-blue btn-md" onclick="document.getElementById('importFileInput').click()">
+            <i class="fa fa-folder-open"></i> اختر ملف JSON
+          </button>
+        </div>
+      </div>
+
+      <!-- قائمة النسخ السابقة -->
+      <p style="font-size:.88rem;font-weight:700;color:var(--slate-700);margin-bottom:.6rem">
+        <i class="fa fa-history"></i> النسخ الاحتياطية السابقة
+      </p>
+      <div id="backupList">
+        <div class="loading-row"><i class="fa fa-spinner fa-spin"></i> جارٍ التحميل...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     حاوية Toast
+     ============================================================ -->
+<div id="toastContainer"></div>
+
+<!-- ============================================================
+     المكتبات الخارجية
+     ============================================================ -->
+<!-- Supabase Client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<!-- EmailJS (اختياري - سيُفعَّل عند إضافة المفاتيح) -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" async></script>
+
+<!-- ============================================================
+     ملفات التطبيق (بالترتيب مهم!)
+     ============================================================ -->
+<script src="assets/js/config.js"></script>
+<script src="assets/js/db.js"></script>
+<script src="assets/js/reports.js"></script>
+<script src="assets/js/backup.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/app.js"></script>
+
+</body>
+</html>

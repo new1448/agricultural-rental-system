@@ -1,0 +1,52 @@
+# ============================================================
+# netlify.toml - إعدادات النشر على Netlify
+# ============================================================
+
+[build]
+  publish = "."          # المجلد الجذر هو نقطة النشر (لا يوجد build step)
+  # command = ""         # لا حاجة لأمر بناء (Vanilla HTML/JS/CSS)
+
+# ===  Headers الأمان  ===
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options        = "DENY"
+    X-XSS-Protection       = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
+    Permissions-Policy     = "geolocation=(), microphone=()"
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src  'self' 'unsafe-inline'
+                  https://cdn.jsdelivr.net
+                  https://cdnjs.cloudflare.com
+                  https://fonts.googleapis.com;
+      style-src   'self' 'unsafe-inline'
+                  https://cdnjs.cloudflare.com
+                  https://fonts.googleapis.com;
+      font-src    'self'
+                  https://cdnjs.cloudflare.com
+                  https://fonts.gstatic.com;
+      img-src     'self' data: https:;
+      connect-src 'self'
+                  https://*.supabase.co
+                  https://*.emailjs.com
+                  https://*.wati.io;
+    """
+
+# === إعادة التوجيه (SPA fallback) ===
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+# === التخزين المؤقت للأصول الثابتة ===
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.html"
+  [headers.values]
+    Cache-Control = "no-cache"

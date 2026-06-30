@@ -4,8 +4,8 @@
 // ضع بيانات مشروعك هنا بعد إنشائه على supabase.com
 // ============================================================
 
-const SUPABASE_URL  = 'https://odtepkalicsrszpelyyv.supabase.co';   // ← استبدل
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kdGVwa2FsaWNzcnN6cGVseXl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDcwMTgsImV4cCI6MjA5ODM4MzAxOH0.e2VrEoPhLp1hJqq6swESSMWemUsy5MLapbGl1V-Gc5o';                         // ← استبدل
+const SUPABASE_URL  = 'https://tshpgcqkeumumtvpoati.supabase.co/rest/v1/';   // ← استبدل
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzaHBnY3FrZXVtdW10dnBvYXRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDk2NjAsImV4cCI6MjA5ODM4NTY2MH0.ZSuXIsTqrs3nU4dRFyawxdD7s1E2upS8DDmFY-ftC2A';                         // ← استبدل
 
 // تهيئة العميل
 const { createClient } = supabase;
